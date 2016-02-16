@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Konetus", "Konetus\Konetus\Konetus.csproj", "{4F8D66AC-0315-44AC-992C-2D168E4FD9B0}"
+EndProject
+Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "KonetusContent", "Konetus\KonetusContent\KonetusContent.contentproj", "{EED1A7E6-B2A3-4670-BE49-71B52B7D23F8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4F8D66AC-0315-44AC-992C-2D168E4FD9B0}.Debug|x86.ActiveCfg = Debug|x86
+		{4F8D66AC-0315-44AC-992C-2D168E4FD9B0}.Debug|x86.Build.0 = Debug|x86
+		{4F8D66AC-0315-44AC-992C-2D168E4FD9B0}.Release|x86.ActiveCfg = Release|x86
+		{4F8D66AC-0315-44AC-992C-2D168E4FD9B0}.Release|x86.Build.0 = Release|x86
+		{EED1A7E6-B2A3-4670-BE49-71B52B7D23F8}.Debug|x86.ActiveCfg = Debug|x86
+		{EED1A7E6-B2A3-4670-BE49-71B52B7D23F8}.Release|x86.ActiveCfg = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
