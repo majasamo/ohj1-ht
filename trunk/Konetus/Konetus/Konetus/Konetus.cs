@@ -12,30 +12,34 @@ public class Konetus : PhysicsGame
     {
         //Level.CreateBorders();
 
+
         PhysicsObject kone = new PhysicsObject(90.0, 40.0, Shape.Rectangle);
-        kone.Position = new Vector(-100, 200);
+        kone.Position = new Vector(Level.Left, 0);
         kone.Color = Color.Orange;
         kone.LinearDamping = 0.7;  // Määritellään, kuinka nopeasti koneen vauhti hidastuu.
         kone.Restitution = 0.3;  // Määritellään koneen kimmoisuus.
         kone.MomentOfInertia = 100;  // Koneen hitausmomentti.
         kone.AngularDamping = 0.6;  // Määritellään, kuinka nopeasti koneen kulmanopeus pienenee.
-        kone.CollisionIgnoreGroup = 1;  // Kone (pois lukien harjaosa) ei vaikuta likaan mitenkään.
-
-        PhysicsObject koneenHarjaosa = new PhysicsObject(1, 1, Shape.Rectangle);
-        koneenHarjaosa.Position = new Vector(0, 0);
-        koneenHarjaosa.CollisionIgnoreGroup = 2;
-        kone.Add(koneenHarjaosa);
-
         Add(kone);
 
+        PhysicsObject asiakas = new PhysicsObject(5.0, 5.0, Shape.Circle);
+        asiakas.Color = Color.Red;
+        asiakas.Position = new Vector(0.0, 0.0);
+        Add(asiakas,1);
+        asiakas.Oscillate(Vector.UnitY, 50.0, 0.4);
+        asiakas.CollisionIgnoreGroup = 1;  // Asiakas ei voi törmätä tahroihin.
 
+        // kone.CollisionIgnoreGroup = 1;  // Kone (pois lukien harjaosa) ei vaikuta likaan mitenkään.
+        // kokoKone.Add(kone);
 
+        /*PhysicsObject koneenHarjaosa = new PhysicsObject(10, 40, Shape.Rectangle);
+        koneenHarjaosa.Position = new Vector(0.0, 50.0);
+        koneenHarjaosa.CollisionIgnoreGroup = 2;
+        Add(koneenHarjaosa);
+        */    
 
-        /*PhysicsStructure kokoKone = new PhysicsStructure(kone, koneenHarjaosa);
-        kokoKone.Softness = -0.0;
-        Add(kokoKone);*/
-
-        AddCollisionHandler(koneenHarjaosa, "lika", TahranPuhdistus);
+        //PhysicsStructure kokoKone = new PhysicsStructure(kone, koneenHarjaosa);
+        //kokoKone.Softness = 0.0;
 
         Keyboard.Listen(Key.Up, ButtonState.Down, LiikutaEteen, "Liikuta konetta eteenpäin", kone, 3000.0);
         Keyboard.Listen(Key.Down, ButtonState.Down, LiikutaTaakse, "Liikuta konetta taaksepäin", kone, 560.0);
@@ -47,10 +51,15 @@ public class Konetus : PhysicsGame
         PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
 
+        AddCollisionHandler(kone, "lika", Puhdista);
+
         TileMap ruudut = TileMap.FromLevelAsset("kentta1");
         ruudut.SetTileMethod('=', TeePalikka);
         ruudut.SetTileMethod('#', TeeTahra);
         ruudut.Execute(10, 10);
+
+        //Window.Height = 600;
+        //Window.Width = 800;
 
         Camera.Follow(kone);  // Kamera kulkee koneen mukana.
         Camera.StayInLevel = true;  // Kamera ei mene kentän reunojen ulkopuolelle.
@@ -91,10 +100,10 @@ public class Konetus : PhysicsGame
         tahra.Color = Color.Brown;
         tahra.CollisionIgnoreGroup = 1; // Tahrat eivät voi törmätä toisiinsa.
         tahra.Tag = "lika";
-        Add(tahra, -1);
+        Add(tahra);
     }
 
-    public void TahranPuhdistus(PhysicsObject puhdistaja, PhysicsObject puhdistettava)
+    public void Puhdista(PhysicsObject puhdistaja, PhysicsObject puhdistettava)
     {
         puhdistettava.Destroy();
     }
