@@ -11,7 +11,7 @@ public class Konetus : PhysicsGame
     const double RUUDUN_SIVU = 10.0;  // Yhden (neliönmuotoisen) ruudun sivun pituus.
     int kenttaNro = 1;
 
-    PhysicsObject kone = new PhysicsObject(9 * RUUDUN_SIVU, 4 * RUUDUN_SIVU, Shape.Rectangle);
+    PhysicsObject kone = new PhysicsObject(4 * RUUDUN_SIVU, 2 * RUUDUN_SIVU, Shape.Rectangle);
 
     IntMeter tahralaskuri;  // Puhdistamattomien tahrojen määrä.
 
