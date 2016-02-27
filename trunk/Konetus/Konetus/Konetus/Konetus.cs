@@ -14,18 +14,22 @@ public class Konetus : PhysicsGame
     PhysicsObject kone = new PhysicsObject(4 * RUUDUN_SIVU, 2 * RUUDUN_SIVU, Shape.Rectangle);
 
     IntMeter tahralaskuri;  // Puhdistamattomien tahrojen määrä.
+    DoubleMeter ajanvahentaja;
+    Timer aikalaskuri;
+    IntMeter varoituslaskuri;
+
+    int varoitukset = 0;  // Pelaajan saamat varoitukset.
 
     public override void Begin()
     {
-        //Level.CreateBorders();
+        Window.Height = 600;
+        Window.Width = 800;
 
-        SeuraavaKentta();
+        TeeAlkuvalikko();
 
         AddCollisionHandler(kone, "lika", Puhdista);
         AddCollisionHandler(kone, "asiakas", TormasitAsiakkaaseen);
 
-        //Window.Height = 600;
-        //Window.Width = 800;
     }
 
 
@@ -43,49 +47,72 @@ public class Konetus : PhysicsGame
     }
 
 
-    public void SeuraavaKentta()
+    public void SeuraavaKentta(int varoitustenMaara)
     {
         ClearAll();
 
         if (kenttaNro == 1)
         {
-            LuoKentta("kentta1");
+            LuoKentta("kentta1", 60, varoitustenMaara);
         }
-        else LuoKentta("kentta2");
+        else LuoKentta("kentta2", 60, varoitustenMaara);
         if (kenttaNro > 2) Exit();
+
     }
 
 
-    public void LuoKentta(string kenttatiedosto)
+    public void LuoKentta(string kenttatiedosto, double aika, int varoitustenMaara)
     {
+        Level.CreateBorders();
+        TeeAikalaskuri(aika);
+        TeeVaroituslaskuri();
+        varoituslaskuri.Value = varoitustenMaara;
         TeeTahralaskuri();
         LuoOhjaimet();
         TileMap ruudut = TileMap.FromLevelAsset(kenttatiedosto);
         ruudut.SetTileMethod('=', TeeSeina);
         ruudut.SetTileMethod('#', TeeTahra);
         ruudut.SetTileMethod('p', TeePoyta);
-        ruudut.SetTileMethod('1', TeeAsiakas1);
-        ruudut.SetTileMethod('2', TeeAsiakas2);
-        ruudut.SetTileMethod('3', TeeAsiakas3);
-        ruudut.SetTileMethod('4', TeeAsiakas4);
+        ruudut.SetTileMethod('1', TeeAsiakas, 50.0);
+        ruudut.SetTileMethod('2', TeeAsiakas, 100.0);
+        ruudut.SetTileMethod('3', TeeAsiakas, 150.0);
+        ruudut.SetTileMethod('4', TeeAsiakas, 200.0);
         ruudut.Execute(RUUDUN_SIVU, RUUDUN_SIVU);
 
-        kone.Position = new Vector(Level.Left + kone.Width, 0);
-        kone.Color = Color.Orange;
-        kone.LinearDamping = 0.7;  // Määritellään, kuinka nopeasti koneen vauhti hidastuu.
-        kone.Restitution = 0.3;  // Määritellään koneen kimmoisuus.
-        kone.MomentOfInertia = 100;  // Koneen hitausmomentti.
-        kone.AngularDamping = 0.6;  // Määritellään, kuinka nopeasti koneen kulmanopeus pienenee.
-        Add(kone);
+        TeeKone();
+
 
         Camera.Follow(kone);  // Kamera kulkee koneen mukana.
         Camera.StayInLevel = true;  // Kamera ei mene kentän reunojen ulkopuolelle.
     }
 
+    public void TeeAlkuvalikko()
+    {
+        MultiSelectWindow alkuvalikko = new MultiSelectWindow("Pelin alkuvalikko", "Aloita peli", "Ohjeet", "Lopeta");
+        alkuvalikko.AddItemHandler(0, AloitaPeli);
+        alkuvalikko.AddItemHandler(1, NaytaOhjeet);
+        alkuvalikko.AddItemHandler(2, Exit);
+        Add(alkuvalikko);
+    }
+
+
+    public void AloitaPeli()
+    {
+        SeuraavaKentta(varoitukset);
+    }
+
+
+    public void NaytaOhjeet()
+    {
+        Exit();
+    }
+
+
     public void LapaisitKentan()
     {
         kenttaNro++;
-        SeuraavaKentta();
+        varoitukset = varoituslaskuri.Value;
+        SeuraavaKentta(varoitukset);
     }
 
     public void LiikutaEteen(PhysicsObject liikutettava, double vauhti)
@@ -107,6 +134,17 @@ public class Konetus : PhysicsGame
         kaannettava.ApplyTorque(vaantovoima);
     }
 
+
+    public void TeeKone()
+    {
+        kone.Position = new Vector(Level.Left + 6 * RUUDUN_SIVU, 0);
+        kone.Color = Color.Orange;
+        kone.LinearDamping = 0.7;  // Määritellään, kuinka nopeasti koneen vauhti hidastuu.
+        kone.Restitution = 0.3;  // Määritellään koneen kimmoisuus.
+        kone.MomentOfInertia = 100;  // Koneen hitausmomentti.
+        kone.AngularDamping = 0.6;  // Määritellään, kuinka nopeasti koneen kulmanopeus pienenee.
+        Add(kone);
+    }
 
     public void TeePalikka(Vector paikka, double leveys, double korkeus, Color vari)
     {
@@ -158,52 +196,23 @@ public class Konetus : PhysicsGame
         rajahdys.Force = 1000.0;
         Add(rajahdys);
         kohde.Destroy();
+        varoituslaskuri.Value += 1;
+        MessageDisplay.Add("Tunari! Törmäsit koneella asiakkaaseen!");
     }
 
 
-    /// <summary>
-    /// Aliohjelma luo olion, joka värähtelee annetulla taajuudella.
-    /// </summary>
-    /// <param name="paikka">Olion paikka (värähtelyn keskipiste).</param>
-    /// <param name="leveys">Olion leveys.</param>
-    /// <param name="korkeus">Olion korkeus.</param>
-    /// <param name="suunta">Värähtelyn suunta.</param>
-    /// <param name="amplitudi">Värähtelyn amplitudi.</param>
-    /// <param name="taajuusHz">Värähtelyn taajuus hertseinä.</param>
-    /// <param name="vari">Olion väri.</param>
-    public void TeeAsiakas(Vector paikka, double leveys, double korkeus, Vector suunta, double amplitudi, double taajuusHz, Color vari)
+    public void TeeAsiakas(Vector paikka, double leveys, double korkeus, double vauhti)
     {
         PhysicsObject asiakas = new PhysicsObject(leveys, korkeus, Shape.Circle);
         asiakas.Position = paikka;
-        asiakas.Color = vari;
-        asiakas.Oscillate(suunta, amplitudi, taajuusHz);
         asiakas.CollisionIgnoreGroup = 1;  // Asiakas ei voi törmätä tahroihin.
         asiakas.Tag = "asiakas";
         Add(asiakas, 1);
-    }
 
-
-    public void TeeAsiakas1(Vector paikka, double leveys, double korkeus)
-    {
-        TeeAsiakas(paikka, leveys, korkeus, Vector.UnitY, 5 * RUUDUN_SIVU, 0.3, Color.Beige);
-    }
-
-
-    public void TeeAsiakas2(Vector paikka, double leveys, double korkeus)
-    {
-        TeeAsiakas(paikka, leveys, korkeus, Vector.UnitX, 5 * RUUDUN_SIVU, 0.3, Color.Black);
-    }
-
-
-    public void TeeAsiakas3(Vector paikka, double leveys, double korkeus)
-    {
-        TeeAsiakas(paikka, leveys, korkeus, Vector.UnitY, 10 * RUUDUN_SIVU, 1.0, Color.HotPink);
-    }
-
-
-    public void TeeAsiakas4(Vector paikka, double leveys, double korkeus)
-    {
-        TeeAsiakas(paikka, leveys, korkeus, Vector.UnitX, 10 * RUUDUN_SIVU, 1.0, Color.BloodRed);
+        RandomMoverBrain asiakkaanAivot = new RandomMoverBrain(vauhti);
+        asiakkaanAivot.ChangeMovementSeconds = 3;
+        asiakkaanAivot.WanderRadius = 200;
+        asiakas.Brain = asiakkaanAivot;
     }
 
 
@@ -214,4 +223,57 @@ public class Konetus : PhysicsGame
         tahralaskuri.LowerLimit += LapaisitKentan;
         int tahrat = tahralaskuri.Value;
     }
+
+
+    public void TeeAikalaskuri(double aika)
+    {
+        ajanvahentaja = new DoubleMeter(aika);       
+
+        aikalaskuri = new Timer();
+        aikalaskuri.Interval = 0.1;
+        aikalaskuri.Timeout += LaskeAlaspain;
+        aikalaskuri.Start();
+
+        Label aikanaytto = new Label();
+        aikanaytto.TextColor = Color.White;
+        aikanaytto.DecimalPlaces = 1;
+        aikanaytto.BindTo(ajanvahentaja);
+        Add(aikanaytto);
+    }
+
+
+    public void LaskeAlaspain()
+    {
+        ajanvahentaja.Value -= 0.1;
+
+        if (ajanvahentaja.Value <= 0)
+        {
+            MessageDisplay.Add("Aijai... Et pysynyt aikataulussa. Tästä hyvästä tulee varoitus.");
+            aikalaskuri.Stop();
+            varoituslaskuri.Value += 1;
+        }
+    }
+
+    
+    public void TeeVaroituslaskuri()
+    {
+        varoituslaskuri = new IntMeter(0);
+        varoituslaskuri.MaxValue = 3;
+        varoituslaskuri.UpperLimit += PotkutTuli;
+
+        Label varoitusnaytto = new Label();
+        varoitusnaytto.Position = new Vector(0, Level.Top - 150);
+        varoitusnaytto.TextColor = Color.Black;
+        varoitusnaytto.Color = Color.Red;
+        varoitusnaytto.BindTo(varoituslaskuri);
+        Add(varoitusnaytto);
+    }
+
+
+    public void PotkutTuli()
+    {
+        MessageDisplay.Add("Olet toheloinut niin paljon, että sinut irtisanotaan. Olet heikoin lenkki. Hyvästi! Paina Enter.");
+        Exit();
+    }
+
 }
