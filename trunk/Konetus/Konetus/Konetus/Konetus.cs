@@ -6,8 +6,15 @@ using Jypeli.Controls;
 using Jypeli.Effects;
 using Jypeli.Widgets;
 
+/// @author Marko Moilanen
+/// @version 1.3.2016
+/// <summary>
+/// 
+/// </summary>
 public class Konetus : PhysicsGame
 {
+    const double ASIAKKAAN_KULKUSADE = 5 * RUUDUN_SIVU;
+    const double AIKARAJOITUS = 100.0;  // Kentän läpäisemiseksi tarkoitettu aika.
     const double RUUDUN_SIVU = 10.0;  // Yhden (neliönmuotoisen) ruudun sivun pituus.
     int kenttaNro = 1;
 
@@ -29,7 +36,6 @@ public class Konetus : PhysicsGame
 
         AddCollisionHandler(kone, "lika", Puhdista);
         AddCollisionHandler(kone, "asiakas", TormasitAsiakkaaseen);
-
     }
 
 
@@ -50,14 +56,8 @@ public class Konetus : PhysicsGame
     public void SeuraavaKentta(int varoitustenMaara)
     {
         ClearAll();
-
-        if (kenttaNro == 1)
-        {
-            LuoKentta("kentta1", 60, varoitustenMaara);
-        }
-        else LuoKentta("kentta2", 60, varoitustenMaara);
-        if (kenttaNro > 2) Exit();
-
+        if (kenttaNro > 5) LapaisitPelin();
+        LuoKentta("kentta" + kenttaNro, AIKARAJOITUS, varoitustenMaara);
     }
 
 
@@ -85,6 +85,13 @@ public class Konetus : PhysicsGame
         Camera.Follow(kone);  // Kamera kulkee koneen mukana.
         Camera.StayInLevel = true;  // Kamera ei mene kentän reunojen ulkopuolelle.
     }
+
+
+    public void LapaisitPelin()
+    {
+        Exit();
+    }
+
 
     public void TeeAlkuvalikko()
     {
@@ -211,7 +218,7 @@ public class Konetus : PhysicsGame
 
         RandomMoverBrain asiakkaanAivot = new RandomMoverBrain(vauhti);
         asiakkaanAivot.ChangeMovementSeconds = 3;
-        asiakkaanAivot.WanderRadius = 200;
+        asiakkaanAivot.WanderRadius = ASIAKKAAN_KULKUSADE;
         asiakas.Brain = asiakkaanAivot;
     }
 
@@ -262,7 +269,7 @@ public class Konetus : PhysicsGame
         varoituslaskuri.UpperLimit += PotkutTuli;
 
         Label varoitusnaytto = new Label();
-        varoitusnaytto.Position = new Vector(0, Level.Top - 150);
+        varoitusnaytto.Position = new Vector(0, Level.Top - 10 * RUUDUN_SIVU);
         varoitusnaytto.TextColor = Color.Black;
         varoitusnaytto.Color = Color.Red;
         varoitusnaytto.BindTo(varoituslaskuri);
@@ -272,7 +279,7 @@ public class Konetus : PhysicsGame
 
     public void PotkutTuli()
     {
-        MessageDisplay.Add("Olet toheloinut niin paljon, että sinut irtisanotaan. Olet heikoin lenkki. Hyvästi! Paina Enter.");
+        MessageDisplay.Add("Olet toheloinut niin paljon, että sinut irtisanotaan. Olet heikoin lenkki. Hyvästi! Paina Enter.");  // Tämä ei toimi vielä, vaan peli pelkästään loppuu.
         Exit();
     }
 
