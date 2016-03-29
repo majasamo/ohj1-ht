@@ -18,7 +18,7 @@ public class Konetus : PhysicsGame
     const double RUUDUN_SIVU = 10.0;  // Yhden (neliönmuotoisen) ruudun sivun pituus.
     int kenttaNro = 1;
 
-    PhysicsObject kone = new PhysicsObject(4 * RUUDUN_SIVU, 2 * RUUDUN_SIVU, Shape.Rectangle);
+    PhysicsObject kone = new PhysicsObject(5 * RUUDUN_SIVU, 2 * RUUDUN_SIVU, Shape.Rectangle);
 
     IntMeter tahralaskuri;  // Puhdistamattomien tahrojen määrä.
     DoubleMeter ajanvahentaja;
@@ -146,6 +146,7 @@ public class Konetus : PhysicsGame
     {
         kone.Position = new Vector(Level.Left + 6 * RUUDUN_SIVU, 0);
         kone.Color = Color.Orange;
+        kone.Image = LoadImage("kone");
         kone.LinearDamping = 0.7;  // Määritellään, kuinka nopeasti koneen vauhti hidastuu.
         kone.Restitution = 0.3;  // Määritellään koneen kimmoisuus.
         kone.MomentOfInertia = 100;  // Koneen hitausmomentti.
@@ -178,8 +179,7 @@ public class Konetus : PhysicsGame
     {
         PhysicsObject tahra = new PhysicsObject(leveys, korkeus);
         tahra.Position = paikka;
-        tahra.Shape = Shape.Rectangle;
-        tahra.Color = Color.Charcoal;
+        tahra.Color = new Color(170, 220, 100, 255);  // Tahran väri. Arvot etsitty kokeilemalla.
         tahra.CollisionIgnoreGroup = 1; // Tahrat eivät voi törmätä toisiinsa.
         tahra.IgnoresExplosions = true;  // Räjähdykset eivät vaikuta tahroihin.
         tahra.Tag = "lika";
@@ -212,6 +212,7 @@ public class Konetus : PhysicsGame
     {
         PhysicsObject asiakas = new PhysicsObject(leveys, korkeus, Shape.Circle);
         asiakas.Position = paikka;
+        asiakas.Color = RandomGen.NextColor();  // Valitaan satunnainen väri.
         asiakas.CollisionIgnoreGroup = 1;  // Asiakas ei voi törmätä tahroihin.
         asiakas.Tag = "asiakas";
         Add(asiakas, 1);
