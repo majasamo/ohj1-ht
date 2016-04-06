@@ -18,8 +18,6 @@ public class Konetus : PhysicsGame
     const double RUUDUN_SIVU = 10.0;  // Yhden (neliönmuotoisen) ruudun sivun pituus.
     int kenttaNro = 1;
 
-    PhysicsObject kone = new PhysicsObject(5 * RUUDUN_SIVU, 2 * RUUDUN_SIVU, Shape.Rectangle);
-
     IntMeter tahralaskuri;  // Puhdistamattomien tahrojen määrä.
     DoubleMeter ajanvahentaja;
     Timer aikalaskuri;
@@ -33,42 +31,56 @@ public class Konetus : PhysicsGame
         Window.Width = 800;
 
         TeeAlkuvalikko();
+    }
 
+
+    public void TeeAlkuvalikko()
+    {
+        MultiSelectWindow alkuvalikko = new MultiSelectWindow("Pelin alkuvalikko", "Aloita peli", "Ohjeet", "Lopeta");
+        alkuvalikko.AddItemHandler(0, AloitaPeli, TeeKone());
+        alkuvalikko.AddItemHandler(1, NaytaOhjeet);
+        alkuvalikko.AddItemHandler(2, Exit);
+        Add(alkuvalikko);
+    }
+
+
+    public void AloitaPeli(PhysicsObject kone)
+    {
+        SeuraavaKentta(kone, varoitukset);
         AddCollisionHandler(kone, "lika", Puhdista);
         AddCollisionHandler(kone, "asiakas", TormasitAsiakkaaseen);
     }
 
 
-    public void LuoOhjaimet()
+    public void SeuraavaKentta(PhysicsObject kone, int varoitustenMaara)
     {
-        Keyboard.Listen(Key.Up, ButtonState.Down, LiikutaEteen, "Liikuta konetta eteenpäin", kone, 3000.0);
-        Keyboard.Listen(Key.Down, ButtonState.Down, LiikutaTaakse, "Liikuta konetta taaksepäin", kone, 560.0);
+        ClearAll();
+        LuoKentta(kone, "kentta" + kenttaNro, AIKARAJOITUS, varoitustenMaara);
+    }
+
+
+    public void LuoOhjaimet(PhysicsObject kone)
+    {
+        Keyboard.Listen(Key.Up, ButtonState.Down, Liikuta, "Liikuta konetta eteenpäin", kone, 3000.0);
+        Keyboard.Listen(Key.Down, ButtonState.Down, Liikuta, "Liikuta konetta taaksepäin", kone, -560.0);
         Keyboard.Listen(Key.Left, ButtonState.Down, Kaanna, "Käännä konetta vasemmalle", kone, 4000.0);
         Keyboard.Listen(Key.Right, ButtonState.Down, Kaanna, "Käännä konetta oikealle", kone, -4000.0);
 
         Keyboard.Listen(Key.F1, ButtonState.Pressed, ShowControlHelp, "Näytä ohje");
-
         PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
+
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
     }
 
 
-    public void SeuraavaKentta(int varoitustenMaara)
-    {
-        ClearAll();
-        if (kenttaNro > 5) LapaisitPelin();
-        LuoKentta("kentta" + kenttaNro, AIKARAJOITUS, varoitustenMaara);
-    }
-
-
-    public void LuoKentta(string kenttatiedosto, double aika, int varoitustenMaara)
+    public void LuoKentta(PhysicsObject kone, string kenttatiedosto, double aika, int varoitustenMaara)
     {
         Level.CreateBorders();
         TeeAikalaskuri(aika);
         TeeVaroituslaskuri();
         varoituslaskuri.Value = varoitustenMaara;
-        TeeTahralaskuri();
-        LuoOhjaimet();
+        TeeTahralaskuri(kone);
+        LuoOhjaimet(kone);
         TileMap ruudut = TileMap.FromLevelAsset(kenttatiedosto);
         ruudut.SetTileMethod('=', TeeSeina);
         ruudut.SetTileMethod('#', TeeTahra);
@@ -79,9 +91,9 @@ public class Konetus : PhysicsGame
         ruudut.SetTileMethod('4', TeeAsiakas, 200.0);
         ruudut.Execute(RUUDUN_SIVU, RUUDUN_SIVU);
 
-        TeeKone();
-
-
+        kone.Position = new Vector(Level.Left + 6 * RUUDUN_SIVU, 0);
+        Add(kone);
+       
         Camera.Follow(kone);  // Kamera kulkee koneen mukana.
         Camera.StayInLevel = true;  // Kamera ei mene kentän reunojen ulkopuolelle.
     }
@@ -89,23 +101,10 @@ public class Konetus : PhysicsGame
 
     public void LapaisitPelin()
     {
-        Exit();
-    }
+        Pause();
+        MessageDisplay.Add("Olet selvinnyt raskaasta työviikosta. Viikonloppu kutsuu! Paina Enter.");
+        Keyboard.Listen(Key.Enter, ButtonState.Pressed, Exit, "Siirry viikonlopun viettoon.");
 
-
-    public void TeeAlkuvalikko()
-    {
-        MultiSelectWindow alkuvalikko = new MultiSelectWindow("Pelin alkuvalikko", "Aloita peli", "Ohjeet", "Lopeta");
-        alkuvalikko.AddItemHandler(0, AloitaPeli);
-        alkuvalikko.AddItemHandler(1, NaytaOhjeet);
-        alkuvalikko.AddItemHandler(2, Exit);
-        Add(alkuvalikko);
-    }
-
-
-    public void AloitaPeli()
-    {
-        SeuraavaKentta(varoitukset);
     }
 
 
@@ -115,24 +114,29 @@ public class Konetus : PhysicsGame
     }
 
 
-    public void LapaisitKentan()
+    public void LapaisitKentan(PhysicsObject kone)
     {
         kenttaNro++;
         varoitukset = varoituslaskuri.Value;
-        SeuraavaKentta(varoitukset);
+
+        if (kenttaNro > 5)  // Jos kyseessä oli viimeinen kenttä, lopetetaan peli...
+        {
+            LapaisitPelin();
+        }
+        else  // ...muuten jatketaan seuraavaan kenttään.
+        {
+            Pause();
+            MessageDisplay.Add("Olet selvinnyt yhdestä työpäivästä. Hienoa! Paina Enter.");
+            Keyboard.Listen(Key.Enter, ButtonState.Pressed, SeuraavaKentta, "Siirry seuraavaan kenttään", kone, varoitukset);
+            //SeuraavaKentta(kone, varoitukset);
+        }
     }
 
-    public void LiikutaEteen(PhysicsObject liikutettava, double vauhti)
+
+    public void Liikuta(PhysicsObject liikutettava, double vauhti)
     {
         Vector kulkusuunta = Vector.FromLengthAndAngle(vauhti, liikutettava.Angle);
         liikutettava.Push(kulkusuunta);
-    }
-
-
-    public void LiikutaTaakse(PhysicsObject liikutettava, double vauhti)
-    {
-        Vector kaanteinenKulkusuunta = -Vector.FromLengthAndAngle(vauhti, liikutettava.Angle);
-        liikutettava.Push(kaanteinenKulkusuunta);
     }
 
 
@@ -142,16 +146,19 @@ public class Konetus : PhysicsGame
     }
 
 
-    public void TeeKone()
+    public PhysicsObject TeeKone()
     {
-        kone.Position = new Vector(Level.Left + 6 * RUUDUN_SIVU, 0);
-        kone.Color = Color.Orange;
+        PhysicsObject kone = new PhysicsObject(5 * RUUDUN_SIVU, 2 * RUUDUN_SIVU, Shape.Rectangle);
+        //kone.Color = Color.Orange;
         kone.Image = LoadImage("kone");
         kone.LinearDamping = 0.7;  // Määritellään, kuinka nopeasti koneen vauhti hidastuu.
         kone.Restitution = 0.3;  // Määritellään koneen kimmoisuus.
         kone.MomentOfInertia = 100;  // Koneen hitausmomentti.
         kone.AngularDamping = 0.6;  // Määritellään, kuinka nopeasti koneen kulmanopeus pienenee.
+        //kone.Tag = "kone";
         Add(kone);
+
+        return kone;
     }
 
     public void TeePalikka(Vector paikka, double leveys, double korkeus, Color vari)
@@ -224,11 +231,11 @@ public class Konetus : PhysicsGame
     }
 
 
-    public void TeeTahralaskuri()
+    public void TeeTahralaskuri(PhysicsObject kone)
     {
         tahralaskuri = new IntMeter(0);
         tahralaskuri.MinValue = 0;
-        tahralaskuri.LowerLimit += LapaisitKentan;
+        tahralaskuri.LowerLimit += delegate { LapaisitKentan(kone); };
         int tahrat = tahralaskuri.Value;
     }
 
@@ -280,8 +287,9 @@ public class Konetus : PhysicsGame
 
     public void PotkutTuli()
     {
-        MessageDisplay.Add("Olet toheloinut niin paljon, että sinut irtisanotaan. Olet heikoin lenkki. Hyvästi! Paina Enter.");  // Tämä ei toimi vielä, vaan peli pelkästään loppuu.
-        Exit();
+        Pause();
+        MessageDisplay.Add("Olet toheloinut niin paljon, että sinut irtisanotaan. Hyvästi! Paina Enter.");
+        Keyboard.Listen(Key.Enter, ButtonState.Pressed, Exit, "Lopeta peli");
     }
 
 }
