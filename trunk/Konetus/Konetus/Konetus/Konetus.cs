@@ -7,29 +7,46 @@ using Jypeli.Effects;
 using Jypeli.Widgets;
 
 /// @author Marko Moilanen
-/// @version 12.4.2016
+/// @version 13.4.2016
 /// <summary>
-/// 
+/// Konetus on ylhäältä kuvattu peli, jossa kuljetetaan lattioiden siivouksessa käytettävää yhdistelmäkonetta.
+/// Tarkoitus on puhdistaa kaikki tahrat annetussa ajassa sekä välttyä törmäämästä alueella liikkuviin 
+/// asiakkaisiin.
 /// </summary>
 public class Konetus : PhysicsGame
 {
-    const double KONEEN_VAUHTI_ETEEN = 3000.0;
-    const double KONEEN_VAUHTI_TAAKSE = -560.0;
-    const double KONEEN_VAANTOVOIMA = 4000.0;
+    // Koneeseen eli pelaajahahmoon liittyvät vakiot:
+    private const double KONEEN_VAUHTI_ETEEN = 3000.0;
+    private const double KONEEN_VAUHTI_TAAKSE = -560.0;
+    private const double KONEEN_VAANTOVOIMA = 4000.0;
+    private const double KONEEN_HIDASTUVUUS = 0.7; 
+    private const double KONEEN_KIMMOISUUS = 0.3;
+    private const double KONEEN_HITAUSMOMENTTI = 100;
+    private const double KONEEN_KULMANOPEUDEN_HIDASTUVUUS = 0.6;
 
-    const int KENTTIEN_MAARA = 5;
+    // Pelissä on viisi kenttää:
+    private const int KENTTIEN_MAARA = 5;
 
-    const double ASIAKKAAN_KULKUSADE = 5 * RUUDUN_SIVU;
-    const double ASIAKKAAN_PERUSVAUHTI = 50.0;
-    const double RUUDUN_SIVU = 10.0;  // Yhden (neliönmuotoisen) ruudun sivun pituus.
-    const double AIKARAJOITUS = 100.0;  // Kentän läpäisemiseksi tarkoitettu aika.
-    const int VAROITUSTEN_MAKSIMI = 3;  // Suurin mahdollinen pelaajan saamien varoitusten määrä.
+    // Pelialueella harhaileviin asiakkaisiin liittyvät vakiot:
+    private const double ASIAKKAAN_KULKUSADE = 5 * RUUDUN_SIVU;
+    private const double ASIAKKAAN_PERUSVAUHTI = 50.0;
+    private const double RUUDUN_SIVU = 10.0;  // Yhden (neliönmuotoisen) ruudun sivun pituus.
 
-    const int IKKUNAN_KORKEUS = 600;
-    const int IKKUNAN_LEVEYS = 800;
+    // Peliin liittyvät rajoituket:
+    private const double AIKARAJOITUS = 100.0;  
+    private const int VAROITUSTEN_MAKSIMI = 3;  
+    
+    // Jos asikakkaaseen törmää, on tuloksena räjähdys. Räjähdykseen liittyvät vakiot:
+    private const double RAJAHDYKSEN_SADE = 60.0;
+    private const double RAJAHDYKSEN_NOPEUS = 100.0;
+    private const double RAJAHDYKSEN_VOIMA = 1000.0;
 
-    IntMeter tahralaskuri;
-    IntMeter varoituslaskuri;
+    // Ruudun koko:
+    private const int IKKUNAN_KORKEUS = 600;
+    private const int IKKUNAN_LEVEYS = 800;
+
+    private IntMeter tahralaskuri;
+    private IntMeter varoituslaskuri;
 
 
     /// <summary>
@@ -152,8 +169,8 @@ public class Konetus : PhysicsGame
     /// Palauttaa kentän numeroa vastaavan viikonpäivän.
     /// </summary>
     /// <param name="kentanNro"></param>
-    /// <returns>Numeroa vastaavan viikkonpäivän nimi. 0 = maanantai, 1 = tiistai, ... .</returns>
-    public string KerroViikonpaiva(int kentanNro)
+    /// <returns>Numeroa vastaavan viikkonpäivän nimi. 1 = maanantai, 2 = tiistai, ... .</returns>
+    public static string KerroViikonpaiva(int kentanNro)
     {
         string[] tyopaivat = { "Maanantai", "Tiistai", "Keskiviikko", "Torstai", "Perjantai" };
         for (int i = 0; i < tyopaivat.Length; i++)
@@ -229,11 +246,10 @@ public class Konetus : PhysicsGame
     {
         PhysicsObject kone = new PhysicsObject(5 * RUUDUN_SIVU, 2 * RUUDUN_SIVU, Shape.Rectangle);
         kone.Image = LoadImage("kone");
-        kone.LinearDamping = 0.7;  // Määritellään, kuinka nopeasti koneen vauhti hidastuu.
-        kone.Restitution = 0.3;  // Määritellään koneen kimmoisuus.
-        kone.MomentOfInertia = 100;  // Koneen hitausmomentti.
-        kone.AngularDamping = 0.6;  // Määritellään, kuinka nopeasti koneen kulmanopeus pienenee.
-        //kone.Tag = "kone";
+        kone.LinearDamping = KONEEN_HIDASTUVUUS;
+        kone.Restitution = KONEEN_KIMMOISUUS;
+        kone.MomentOfInertia = KONEEN_HITAUSMOMENTTI;
+        kone.AngularDamping = KONEEN_KULMANOPEUDEN_HIDASTUVUUS;
         Add(kone);
 
         return kone;
@@ -318,10 +334,10 @@ public class Konetus : PhysicsGame
     /// <param name="kohde">Törmäyksen kohde.</param>
     public void TormasitAsiakkaaseen(PhysicsObject tormaaja, PhysicsObject kohde)
     {
-        Explosion rajahdys = new Explosion(60);
+        Explosion rajahdys = new Explosion(RAJAHDYKSEN_SADE);
         rajahdys.Position = kohde.Position;
-        rajahdys.Speed = 100.0;
-        rajahdys.Force = 1000.0;
+        rajahdys.Speed = RAJAHDYKSEN_NOPEUS;
+        rajahdys.Force = RAJAHDYKSEN_VOIMA;
         Add(rajahdys);
         kohde.Destroy();
         varoituslaskuri.Value++;  // Törmäys aiheuttaa törmääjälle varoituksen.
