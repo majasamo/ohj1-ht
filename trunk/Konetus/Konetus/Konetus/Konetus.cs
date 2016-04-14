@@ -306,7 +306,7 @@ public class Konetus : PhysicsGame
     {
         PhysicsObject tahra = new PhysicsObject(leveys, korkeus);
         tahra.Position = paikka;
-        tahra.Color = new Color(170, 220, 100, 255);  // Tahran väri. Arvot etsitty kokeilemalla.
+        tahra.Image = LoadImage("tahra");
         tahra.CollisionIgnoreGroup = 1; // Tahrat eivät voi törmätä toisiinsa.
         tahra.IgnoresExplosions = true;  // Räjähdykset eivät vaikuta tahroihin.
         tahra.Tag = "lika";
