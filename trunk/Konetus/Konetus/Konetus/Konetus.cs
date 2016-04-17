@@ -168,7 +168,7 @@ public class Konetus : PhysicsGame
     /// <summary>
     /// Palauttaa kentän numeroa vastaavan viikonpäivän.
     /// </summary>
-    /// <param name="kentanNro"></param>
+    /// <param name="kentanNro">Menossa olevan kentän numero.</param>
     /// <returns>Numeroa vastaavan viikkonpäivän nimi. 1 = maanantai, 2 = tiistai, ... .</returns>
     public static string KerroViikonpaiva(int kentanNro)
     {
