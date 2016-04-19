@@ -1,5 +1,9 @@
 using System;
 
+
+/// <summary>
+/// Laittaa pelin käyntiin.
+/// </summary>
 static class Ohjelma
 {
 #if WINDOWS || XBOX

@@ -7,7 +7,7 @@ using Jypeli.Effects;
 using Jypeli.Widgets;
 
 /// @author Marko Moilanen
-/// @version 13.4.2016
+/// @version 19.4.2016
 /// <summary>
 /// Konetus on ylhäältä kuvattu peli, jossa kuljetetaan lattioiden siivouksessa käytettävää yhdistelmäkonetta.
 /// Tarkoitus on puhdistaa kaikki tahrat annetussa ajassa sekä välttyä törmäämästä alueella liikkuviin 
@@ -34,7 +34,7 @@ public class Konetus : PhysicsGame
 
     // Peliin liittyvät rajoituket:
     private const double AIKARAJOITUS = 100.0;  
-    private const int VAROITUSTEN_MAKSIMI = 3;  
+    private const int VAROITUSTEN_MAKSIMI = 5;  
     
     // Jos asikakkaaseen törmää, on tuloksena räjähdys. Räjähdykseen liittyvät vakiot:
     private const double RAJAHDYKSEN_SADE = 60.0;
@@ -169,7 +169,7 @@ public class Konetus : PhysicsGame
     /// Palauttaa kentän numeroa vastaavan viikonpäivän.
     /// </summary>
     /// <param name="kentanNro">Menossa olevan kentän numero.</param>
-    /// <returns>Numeroa vastaavan viikkonpäivän nimi. 1 = maanantai, 2 = tiistai, ... .</returns>
+    /// <returns>Numeroa vastaavan viikkonpäivän nimi. 1 = maanantai, 2 = tiistai, ... . (Jos vastinetta ei löydy, palautetaan tyhjä merkkijono.)</returns>
     public static string KerroViikonpaiva(int kentanNro)
     {
         string[] tyopaivat = { "Maanantai", "Tiistai", "Keskiviikko", "Torstai", "Perjantai" };
@@ -257,7 +257,7 @@ public class Konetus : PhysicsGame
 
 
     /// <summary>
-    /// Tekee staattisen suorakulmion muotoisen fysiikkaolion.
+    /// Tekee staattisen suorakulmion muotoisen kiinteän fysiikkaolion.
     /// </summary>
     /// <param name="paikka">Keskipisteen sijainti..</param>
     /// <param name="leveys">Palikan leveys.</param>
@@ -285,7 +285,7 @@ public class Konetus : PhysicsGame
 
 
     /// <summary>
-    /// Tekee seinäpalikan.
+    /// Tekee pöytäpalikan.
     /// </summary>
     /// <param name="paikka">Palikan keskipisteen sijainti.</param>
     /// <param name="leveys">Palikan leveys.</param>
